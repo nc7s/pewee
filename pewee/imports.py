@@ -19,7 +19,6 @@ ignoring Windows Store apps, DLL redirections, and manifests.
 import re
 import os
 import sys
-import ctypes
 from pathlib import Path
 
 
@@ -40,6 +39,7 @@ KNOWN_DLLS_WIN10_10586 = frozenset({'bcryptprimitives.dll', 'netapi32.dll', 'fir
 
 
 if sys.platform.startswith('win32'):
+	import ctypes
 	_BUF_SIZE = 256
 	buf = ctypes.create_unicode_buffer(_BUF_SIZE)
 	ctypes.cdll.kernel32.GetSystemDirectoryW(ctypes.byref(buf), _BUF_SIZE)
