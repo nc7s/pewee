@@ -179,10 +179,6 @@ class DataDirectory(Struct):
             return self.optional_header.file_base + self.optional_header.DATA_DIRECTORY_OFFSET_PE32 + self.id * self.size
 
 
-def make_DataDirectory(optional_header, id):
-    return DataDirectory(optional_header, id)
-
-
 class OptionalHeader(Struct):
     COMMON_FIELDS = (
         (0, 2, 'Magic', b2i),
@@ -245,7 +241,7 @@ class OptionalHeader(Struct):
 
         self.data_directories = []
         for i in range(self.NumberOfRvaAndSizes):
-            self.data_directories.append(make_DataDirectory(self, i))
+            self.data_directories.append(DataDirectory(self, i))
 
     @property
     def file_base(self):
