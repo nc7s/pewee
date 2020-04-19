@@ -257,115 +257,92 @@ class OptionalHeader(Struct):
 
 
 class DataTables:
-        class ExportTable:
-            def __init__(self, *args, **kwargs):
-                pass
-        
-        class ImportTable:
-            class ImportEntry(Struct):
-                FIELDS = (
-                    (0, 4, 'ImportLookupTableRVA', b2i),
-                    (4, 4, 'TimeDateStamp', b2i),
-                    (8, 4, 'ForwarderChain', b2i),
-                    (12, 4, 'NameRVA', b2i),
-                    (16, 4, 'ImportAddressTableRVA', b2i),
-                )
+    '''Holder class of data table classes.
+    '''
+    
+    class DataTable:
+        def __init__(self, *args, **kwargs):
+            pass
+    
+    class ExportTable(DataTable): pass
+    
+    class ImportTable(DataTable):
+        class ImportEntry(Struct):
+            FIELDS = (
+                (0, 4, 'ImportLookupTableRVA', b2i),
+                (4, 4, 'TimeDateStamp', b2i),
+                (8, 4, 'ForwarderChain', b2i),
+                (12, 4, 'NameRVA', b2i),
+                (16, 4, 'ImportAddressTableRVA', b2i),
+            )
 
-                def __init__(self, table, id):
-                    self.table = table
-                    self.id = id
-                    super().__init__(table.pe)
-                
-                @property
-                def name(self):
-                    return self.pe.read_till_zero(self.pe.file_offset_from_rva(self.NameRVA), null_str)
-
-                @property
-                def file_base(self):
-                    return self.table.file_base + self.id * self.size
-                
-                def __repr__(self):
-                    return '{}<{}>(offset={} size={})'.format(self.__class__.__name__, self.name, hex(self.file_base), hex(self.size))
-
-
-            def __init__(self, pe, data_directory):
-                self.pe = pe
-                self.data_directory = data_directory
-
-                self.entries = []
-
-                if data_directory.VirtualAddress == 0:
-                    return
-                
-                entry = None
-                i = 0
-                while True:
-                    entry = self.ImportEntry(self, i)
-                    if entry.NameRVA == 0:
-                        return
-                    self.entries.append(entry)
-                    i += 1
-                
+            def __init__(self, table, id):
+                self.table = table
+                self.id = id
+                super().__init__(table.pe)
+            
+            @property
+            def name(self):
+                return self.pe.read_till_null(self.pe.file_offset_from_rva(self.NameRVA), null_str)
 
             @property
             def file_base(self):
-                return self.pe.file_offset_from_rva(self.data_directory.VirtualAddress)
-        
-        class ResourceTable:
-            def __init__(self, *args, **kwargs):
-                pass
-        
-        class ExceptionTable:
-            def __init__(self, *args, **kwargs):
-                pass
-        
-        class CertificateTable:
-            def __init__(self, *args, **kwargs):
-                pass
-        
-        class BaseRelocationTable:
-            def __init__(self, *args, **kwargs):
-                pass
-        
-        class Debug:
-            def __init__(self, *args, **kwargs):
-                pass
-        
-        class Architecture:
-            def __init__(self, *args, **kwargs):
-                pass
-        
-        class GlobalPointer:
-            def __init__(self, *args, **kwargs):
-                pass
-        
-        class TLSTable:
-            def __init__(self, *args, **kwargs):
-                pass
-        
-        class LoadConfigTable:
-            def __init__(self, *args, **kwargs):
-                pass
-        
-        class BoundImport:
-            def __init__(self, *args, **kwargs):
-                pass
-        
-        class ImportAddressTable:
-            def __init__(self, *args, **kwargs):
-                pass
-        
-        class DelayImportDescriptor:
-            def __init__(self, *args, **kwargs):
-                pass
-        
-        class CLRRuntimeHeader:
-            def __init__(self, *args, **kwargs):
-                pass
-        
-        class Reserved:
-            def __init__(self, *args, **kwargs):
-                pass
+                return self.table.file_base + self.id * self.size
+            
+            def __repr__(self):
+                return '{}<{}>(offset={} size={})'.format(self.__class__.__name__, self.name, hex(self.file_base), hex(self.size))
+
+
+        def __init__(self, pe, data_directory):
+            self.pe = pe
+            self.data_directory = data_directory
+
+            self.entries = []
+
+            if data_directory.VirtualAddress == 0:
+                return
+            
+            entry = None
+            i = 0
+            while True:
+                entry = self.ImportEntry(self, i)
+                if entry.NameRVA == 0:
+                    return
+                self.entries.append(entry)
+                i += 1
+            
+
+        @property
+        def file_base(self):
+            return self.pe.file_offset_from_rva(self.data_directory.VirtualAddress)
+    
+    class ResourceTable(DataTable): pass
+    
+    class ExceptionTable(DataTable): pass
+    
+    class CertificateTable(DataTable): pass
+    
+    class BaseRelocationTable(DataTable): pass
+    
+    class Debug(DataTable): pass
+    
+    class Architecture(DataTable): pass
+    
+    class GlobalPointer(DataTable): pass
+    
+    class TLSTable(DataTable): pass
+    
+    class LoadConfigTable(DataTable): pass
+    
+    class BoundImport(DataTable): pass
+    
+    class ImportAddressTable(DataTable): pass
+    
+    class DelayImportDescriptor(DataTable): pass
+    
+    class CLRRuntimeHeader(DataTable): pass
+    
+    class Reserved(DataTable): pass
 
 
 DATA_TABLE_ENTRIES = (
