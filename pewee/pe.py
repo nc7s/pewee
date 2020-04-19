@@ -49,7 +49,9 @@ class Struct:
     
     @property
     def file_base(self):
-        pass
+        '''Calculate where in the file is the start of this struct. Must be overridden.
+        '''
+        raise Exception('This method must be overridden.')
     
     @property
     def size(self):
