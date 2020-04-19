@@ -480,7 +480,7 @@ class PE:
         else:
             return self.data.read(length)
 
-    def read_till_zero(self, start, convert=None):
+    def read_till_null(self, start, convert=None):
         self.data.seek(start)
         while self.data.read(1) != b'\0':
             continue
