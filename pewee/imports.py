@@ -1,17 +1,17 @@
-'''Module to decide which DLLs are to be packed in.
+'''Module to determine which DLLs are to be packed in, and where to put them.
 
 There are three categories we needn't pack:
 
 1. Known DLLs, which Windows always load from its own cache;
-2. API Sets, which are another indirections of Known DLLs (for now), and there's no reason to pack them;
-3. PythonXY.dll, because you need it to run Python, and it should exist before you install a wheel.
+2. API Sets, which are another indirection of Known DLLs (for now), and there's no reason to pack them;
+3. PythonXY.dll, because it is needed to run Python, and it should exist before installing a wheel.
 
-To reduce workload, we don't support Windows versions below Windows 7 (NT 6.1).
+To reduce workload, Windows versions below Windows 7 (NT 6.1) are not supported.
 Microsoft themselves ended support for them, after all.
 
 After filtering out those, find the correct DLLs loaded by native extensions,
 following the search order described at https://docs.microsoft.com/en-us/windows/win32/dlls/dynamic-link-library-search-order.
-We only follow the default (standard) Desktop Application search order for now,
+Only follow the default (standard) Desktop Application search order is followed for now,
 ignoring Windows Store apps, DLL redirections, and manifests.
 '''
 
@@ -51,7 +51,8 @@ if sys.platform.startswith('win32'):
 def _make_known_dlls_list(win_ver):
 	'''Generate a set containing names of Known DLLs in given version of Windows.
 
-	:param win_ver: The named tuple returned by `sys.getwindowsversion().
+	:param win_ver: The named tuple returned by `sys.getwindowsversion()`.
+	:returns: A tuple of Known DLLs.
 	'''
 	if win_ver.major == 10:
 		known_dlls = KNOWN_DLLS_COMMON.union(KNOWN_DLLS_COMMON_WIN10)
@@ -88,14 +89,14 @@ def should_filter(imported, win_ver=None):
 def is_safe_dll_search_mode_enabled(win_ver):
 	'''Query the Windows registry to determine if SafeDllSearchMode is enabled. Windows only.
 
-	:param win_ver: The named tuple returned by `sys.getwindowsversion().
-	:returns: True of SafeDllSearchMode is enabled, False otherwise.
+	:param win_ver: The named tuple returned by `sys.getwindowsversion()`.
+	:returns: A bool, True if SafeDllSearchMode is enabled.
 	'''
 	import winreg
 	reg_key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r'System\CurrentControlSet\Control\Session Manager')
 	try:
 		return winreg.QueryValueEx(reg_key, 'SafeDllSearchMode')[0] == 1
-	except:
+	except: # No value present, use default value
 		# Enabled by default starting in Windows XP SP2
 		return win_ver.major >= 6 or (win_ver.major == 5 and win_ver.service_pack_major >= 2)
 
@@ -121,29 +122,29 @@ def _search_PATH(name_lower):
 
 
 def search_dll(importer_path, name, win_ver=None, working_directory=None, safe_dll_search_mode=None):
-	'''Search the DLL that's actually imported by importer.
+	'''Search the DLL that's actually imported by importer, i.e. the importing `.pyd` or DLL.
 	
 	Depending on whether SafeDllSearchMode is enabled, there are two search orders:
 
 	* SafeDllSearchMode is ENABLED
-	 1. The directory from which the application is loaded, e.g. where the importing DLL is located;
+	 1. The directory from which the application is loaded, e.g. where the importer is located;
 	 2. The system directory, e.g. C:\Windows\System32;
 	 3. The 16-bit system directory (not actually, but it's listed);
 	 4. The Windows directory, e.g. C:\Windows;
 	 5. The current directory;
 	 6. The directories listed in the PATH environment variable.
 	* SafeDllSearchMode is DISABLED
-	 1. The directory from which the application is loaded, e.g. where the importing DLL is located;
+	 1. The directory from which the application is loaded, e.g. where the importer is located;
 	 2. The current directory;
 	 3. The system directory, e.g. C:\Windows\System32;
 	 4. The 16-bit system directory (not actually, but it's listed);
 	 5. The Windows directory, e.g. C:\Windows;
 	 6. The directories listed in the PATH environment variable.
 
-	:param importer_path: Path of the importer, i.e. the `.pyd` or an imported DLL.
+	:param importer_path: Path of the importer.
 	:param name: Name of the DLL to search for.
-	:param working_directory: Defaults to `os.getcwd()`, but you can specify a path if that's the case.
-	:param safe_dll_search_mode: Specify whether SafeDllSearchMode is enabled, or leave as None to query the registry. Default is None.
+	:param working_directory: Defaults to `os.getcwd()`, but can be specified if that's the case.
+	:param safe_dll_search_mode: Specify whether SafeDllSearchMode is enabled, or leave as None to query the registry.
 	:returns: A `pathlib.Path` holding the path if found, otherwise `None`.
 	'''
 	if not win_ver:

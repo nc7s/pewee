@@ -1,4 +1,4 @@
-'''Module to parse and modify PE files.
+'''Provide the `PE` class to parse and modify PE files.
 '''
 
 
@@ -72,12 +72,12 @@ class Struct:
 class BitFlag:
     '''Bit flag auto-parsing class.
     
-    By default the flag bits are considered next to each other.
+    By default the flag bits are considered next to each other, i.e. 0x01, 0x02, 0x04, 0x08, 0x10, and so on.
     '''
 
     FLAGS = (
         # (bit, name),
-        # or just name
+        # or just names, to use the default pattern.
     )
     def __init__(self, raw):
         self._data = {}
@@ -159,8 +159,6 @@ class COFFHeader(Struct):
 
 
 class DataDirectory(Struct):
-    '''Object representing one of the data directories of a optional header.'''
-
     FIELDS = (
         (0, SIZE_DWORD, 'VirtualAddress', b2i),
         (SIZE_DWORD, SIZE_DWORD, 'Size', b2i),
@@ -184,8 +182,6 @@ def make_DataDirectory(optional_header, id):
 
 
 class OptionalHeader(Struct):
-    '''Object representing the optinal header of a PE file.'''
-
     COMMON_FIELDS = (
         (0, 2, 'Magic', b2i),
         (2, 1, 'MajorLinkerVersion', b2i),
@@ -251,7 +247,7 @@ class OptionalHeader(Struct):
 
     @property
     def file_base(self):
-        # At this time, the COFF header should have been already parsed.
+        # At this time, the COFF header should have been parsed.
         return self.pe.coff_header.file_end
 
     @property
@@ -458,9 +454,9 @@ class Section:
 class PE:
     '''Object representing a PE file.
 
-    Since `.pyd`s are DLLs, and DLLs are images, we don't consider object files here.
+    Since `.pyd`s are DLLs, and DLLs are image files, we don't consider object files here.
 
-    :param source: PE file to load. Can be a path string, path-like object, file-like object.
+    :param source: PE file to load. Can be a path string, path-like object, or a file-like object.
     '''
 
     def __init__(self, source):
@@ -477,11 +473,6 @@ class PE:
             self.data_tables.append(DATA_TABLE_ENTRIES[i](self, data_directory))
     
     def load(self, source):
-        '''Load the PE file.
-
-        :param source: PE file to load. The same as for `__init__()`.
-        '''
-        
         # Given a path.
         if isinstance(source, (str, os.PathLike)):
             file = open(source, 'rb')
@@ -495,8 +486,6 @@ class PE:
             self.data = source
     
     def parse_verify_coff_header(self):
-        '''Parse and verify the COFF headers.'''
-        
         if self.read_at(0, len(SIGNATURE_DOS_STUB)) != SIGNATURE_DOS_STUB:
             raise BadPEFile('Bad DOS stub')
         self.pe_sig_offset = self.read_at(0x3c, SIZE_DWORD, b2i)
@@ -510,8 +499,6 @@ class PE:
             raise BadPEFile('Not a DLL')
 
     def read_at(self, position, length, convert=None):
-        '''Read bytes of given length, starting at given position. Optionally convert it.'''
-
         self.data.seek(position)
         if convert:
             return convert(self.data.read(length))
