@@ -2,3 +2,6 @@
 
 When building packages with native extensions, native libraries are not included in the wheel. To fix this problem, we need to put them in by ourselves. There's https://github.com/pypa/auditwheel[*auditwheel*] for Linux and https://github.com/matthew-brett/delocate[*delocate*] for macOS, so why not have one for Windows?
 
+== Testing
+
+Run `python -m pytest` at project root.
