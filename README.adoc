@@ -1,7 +1,45 @@
-= [WIP] pewee: Pack required DLLs into wheels
+= pewee: Pack required DLLs into wheels
 
-When building packages with native extensions, native libraries are not included in the wheel. To fix this problem, we need to put them in by ourselves. There's https://github.com/pypa/auditwheel[*auditwheel*] for Linux and https://github.com/matthew-brett/delocate[*delocate*] for macOS, so why not have one for Windows?
+When building packages with native extensions, native libraries are not included in the wheel.
+To fix this problem, we need to put them in ourselves.
+
+There's https://github.com/pypa/auditwheel[*auditwheel*] for Linux and
+https://github.com/matthew-brett/delocate[*delocate*] for macOS,
+so here's one for Windows.
+
+How *pewee* works: it unpacks a Windows wheel, goes over those, find DLLs they require,
+copy them into the wheel, and repack it.
+
+== Install
+
+[source,shell]
+----
+pip install pewee
+pip install pewee[cli] # CLI usage
+----
+
+== Usage
+
+.CLI usage
+
+[source,shell]
+----
+pewee patch some-1.2.3-py3-none-any.whl
+----
+
+.API usage
+
+[source,python]
+----
+from pewee import patch_wheel
+
+patch_wheel('./dist/some-1.2.3-py3-none-any.whl')
+----
 
 == Testing
 
-Run `python -m pytest` at project root.
+Run `python -m pytest`.
+
+== License
+
+BSD 3-clause.
